@@ -11,8 +11,11 @@ module Rahmen
       capture = ::OpenCV::CvCapture.open
       mat = capture.query.to_CvMat
       mat.save(out_path)
+
+      out_path
     end
 
+    private
     def default_out_path(ext='jpg')
       FileUtils.mkdir_p(@out_dir) unless Dir.exists?(@out_dir)
 
