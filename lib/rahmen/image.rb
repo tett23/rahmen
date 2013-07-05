@@ -13,6 +13,9 @@ module Rahmen
       keypoints, = gray.extract_surf(::OpenCV::CvSURFParams.new(500, true, 2, 3))
 
       keypoints.each do |keypoint|
+        next unless keypoint.size > 25
+        text = "#{keypoint.laplacian}, #{keypoint.size}"
+        @mat.put_text!(text, keypoint.pt, ::OpenCV::CvFont.new(:simplex, hscale: 0.3, vscale: 0.3), ::OpenCV::CvColor::Blue)
         @mat.circle!(keypoint.pt, (keypoint.size*0.25), color: ::OpenCV::CvColor::Blue, thickness: 1, line_type: :aa)
       end
 
