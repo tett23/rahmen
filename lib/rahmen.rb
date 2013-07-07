@@ -8,4 +8,9 @@ require 'fileutils'
 require 'active_support/core_ext'
 
 module Rahmen
+  extend self
+
+  def self.init
+    Helianthus.init
+  end
 end
