@@ -4,6 +4,10 @@ module Rahmen
       init: {
         method: :post,
         url: '/api/init'
+      },
+      image_upload: {
+        method: :put,
+        url: '/api/images/upload'
       }
     }
     SERVER = 'http://192.168.1.101:3000'
@@ -33,6 +37,18 @@ module Rahmen
         req.headers['X-Requested-With'] = 'XMLHttpRequest'
         req.body = data.to_s
       end if api_exist?(api, :post)
+      check_response(res)
+
+      JSON.parse(res.env[:body]).symbolize_keys
+    end
+
+    def put(api, data={})
+      res = connection.post do |req|
+        req.url API_MAPPING[api][:url]
+        req.headers['Content-Type'] = 'application/json'
+        req.headers['X-Requested-With'] = 'XMLHttpRequest'
+        req.body = data.to_s
+      end if api_exist?(api, :put)
       check_response(res)
 
       JSON.parse(res.env[:body]).symbolize_keys
