@@ -20,7 +20,7 @@ module Rahmen
       end
 
       ::OpenCV::GUI::Window.new('SURF').show @mat
-      ::OpenCV::GUI::wait_key
+      #::OpenCV::GUI::wait_key
     end
 
     def to_gray

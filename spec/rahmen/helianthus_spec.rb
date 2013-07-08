@@ -12,13 +12,7 @@ module Rahmen
         end
       end
       it 'upload image' do
-        data = {}
-        image_path = Rahmen::Camera.new.capture
-        mime_type = MIME::Types.type_for(image_path).first.to_s
-
-        data[:profile_pic] = Faraday::UploadIO.new(image_path, mime_type)
-
-        Helianthus.post :upload_image, data
+        Helianthus.upload_image Camera.new.capture
       end
     end
   end

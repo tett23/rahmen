@@ -1,3 +1,12 @@
+require 'faraday/request/multipart'
+require 'net/http'
+
+class Hash
+  def bytesize
+    self.to_json.size
+  end
+end
+
 module Rahmen
   module Helianthus
     API_MAPPING = {
@@ -6,7 +15,7 @@ module Rahmen
         url: '/api/init'
       },
       image_upload: {
-        method: :put,
+        method: :post,
         url: '/api/images/upload'
       }
     }
@@ -16,6 +25,17 @@ module Rahmen
 
     def init
       post :init
+    end
+
+    def upload_image(image_path)
+      mime_type = MIME::Types.type_for(image_path).first.to_s
+      data = {}
+      data[:image] = Faraday::UploadIO.new(image_path, mime_type).to_json
+
+      Net::HTTP.post_form(URI(SERVER+API_MAPPING[:image_upload][:url]), data)
+
+      #connection.post '/api/images/upload', data
+      #post :image_upload, data, multipart: true
     end
 
     private
@@ -30,12 +50,16 @@ module Rahmen
       JSON.parse(res.env[:body]).symbolize_keys
     end
 
-    def post(api, data={})
-      res = connection.post do |req|
+    def post(api, data={}, options={})
+      res = connection(options).post do |req|
         req.url API_MAPPING[api][:url]
         req.headers['Content-Type'] = 'application/json'
         req.headers['X-Requested-With'] = 'XMLHttpRequest'
-        req.body = data.to_s
+        req.body = data
+
+        options[:headers].each do |header, val|
+          req.headers[header.to_s] = val
+        end if options.key?(:headers)
       end if api_exist?(api, :post)
       check_response(res)
 
@@ -43,21 +67,31 @@ module Rahmen
     end
 
     def put(api, data={})
-      res = connection.post do |req|
-        req.url API_MAPPING[api][:url]
+      res = connection.put API_MAPPING[api][:url], data.to_json do |req|
         req.headers['Content-Type'] = 'application/json'
         req.headers['X-Requested-With'] = 'XMLHttpRequest'
-        req.body = data.to_s
+
+        options[:headers].each do |header, val|
+          req.headers[header.to_s] = val
+        end if options.key?(:headers)
       end if api_exist?(api, :put)
       check_response(res)
 
       JSON.parse(res.env[:body]).symbolize_keys
     end
 
-    def connection
+    def connection(options={})
       Faraday::Connection.new(url: SERVER) do |builder|
+        builder.adapter Faraday.default_adapter
         builder.request :url_encoded
-        builder.adapter :net_http
+        #builder.response :json, :content_type => "application/json"
+          builder.request :multipart
+
+        if options.key?(:multipart)
+          builder.request :multipart
+        else
+          builder.request :url_encoded
+        end
       end
     end
 
