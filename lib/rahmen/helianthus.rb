@@ -28,11 +28,16 @@ module Rahmen
     end
 
     def upload_image(image_path)
-      mime_type = MIME::Types.type_for(image_path).first.to_s
-      data = {}
-      data[:image] = Faraday::UploadIO.new(image_path, mime_type).to_json
+      #mime_type = MIME::Types.type_for(image_path).first.to_s
+      #data = {}
+      #data[:image] = Faraday::UploadIO.new(image_path, mime_type).to_json
 
-      Net::HTTP.post_form(URI(SERVER+API_MAPPING[:image_upload][:url]), data)
+      #Net::HTTP.post_form(URI(SERVER+API_MAPPING[:image_upload][:url]), data)
+      HTTPClient.new.post_content(SERVER+API_MAPPING[:image_upload][:url], {
+        image: open(image_path, 'rb')
+      }, {
+         'content-type' => 'multipart/form-data'
+      })
 
       #connection.post '/api/images/upload', data
       #post :image_upload, data, multipart: true
